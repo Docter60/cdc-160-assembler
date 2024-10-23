@@ -1,0 +1,10 @@
+*.160
+*.asm
+CMakeFiles
+CMakeCache.txt
+cmake_install.cmake
+src/CMakeFiles
+Makefile
+src/Makefile
+.vscode
+160asm

@@ -1,0 +1,332 @@
+160-A Instructions
+
+    FF EE
+    FF EE GGGG
+
+    Stop Instructions
+        ERR - Error Stop - 00 00
+            Letters ERR will display in status indicator and the computer halts.
+            Control continues at (P) + 1 when switched to RUN.
+
+        HLT - Halt - 77 00
+            Computer halts.  Control continues at (P) + 1 when switched to RUN.
+
+        HLT - Halt - 77 77
+            Same as HLT - Halt - 77 00
+
+        NOP - No Operation - 00 0X
+            Computer does not perform any action.  Proceeds to (P) + 1.
+    
+
+    Data Transmission Instructions
+        BLS - Block Store - 01 00 YYYY
+            Set storage location range to value in A.  
+            Set BER (using instruction ATE) and BXR (using instruction ATX) before initial usage.
+            if buffer == busy:
+                YYYY => P
+            else:
+                (A) => BFR
+                (P) + 2 => P
+                start cycle
+                    *(BFR) => (b)(BER)
+                    (BER) + 1 => BER
+        
+        PTA - Transfer P to A - 01 01
+            Transfer contents of P to A.
+            (P) => A
+            (P) + 1 => P
+
+        ATE - A to BER - 01 05 YYYY
+            Transfer contents of A to BER.
+            if buffer == busy:
+                YYYY => P
+            else:
+                (A) => BER
+                (P) + 2 => P
+        
+        ATX - A to BXR - 01 06 YYYY
+            Transfer contents of A to BXR.
+            if buffer == busy:
+                YYYY => P
+            else:
+                (A) => BXR
+                (P) + 2 => P
+        
+        ETA - BER to A - 01 07
+            Transfer contents of BER to A.
+            (BER) => A
+            (P) + 1 => P
+        
+        CTA - Bank Controls to A - 01 30
+            Copy contents of the four storage bank controls to A.
+            (b) => A11-A9
+            (d) => A8-A6
+            (i) => A5-A3
+            (r) => A2-A0
+            (P) + 1 => P
+        
+        STP - Store P at location E - 01 5X
+            Transfer contents of P to storage location (d) 005X.
+            (P) => (d) 005X
+            (P) + 1 => P
+        
+        LDN - Load No Address - 04 XX
+        LDD - Load Direct       20 XX
+        LDM - Load Memory       21 00 YYYY
+        LDI - Load Indirect     21 XX
+        LDC - Load Constant     22 00 XXXX
+        LDF - Load Forward      22 XX
+        LDS - Load Specific     23 00
+        LDB - Load Backward     23 XX
+            Copy operand to A.  Behavior is address mode dependent.
+        
+        STE - Store BER at location E, A to BER - 01 6X
+            Transfer contents of BER to storage location (d) 006X, then copy A to BER.
+            (BER) => (d) 006X
+            (A) => BER
+            (P) + 1 => P
+        
+        LCN - Load Complement No Address - 05 XX
+        LCD - Load Complement Direct       24 XX
+        LCM - Load Complement Memory       25 00 YYYY
+        LCI - Load Complement Indirect     25 XX
+        LCC - Load Complement Constant     26 00 XXXX
+        LCF - Load Complement Forward      26 XX
+        LCS - Load Complement Specific     27 00
+        LCB - Load Complement Backward     27 XX
+            Copy one's complement of operand to A.
+            Behavior is address mode dependent.
+        
+        STD - Store Direct       40 XX
+        STM - Store Memory       41 00 YYYY
+        STI - Store Indirect     41 XX
+        STC - Store Constant     42 00 XXXX
+        STF - Store Forward      42 XX
+        STS - Store Specific     43 00
+        STB - Store Backward     43 XX
+            Copy A to operand address.  Behavior is address mode dependent.
+        
+        HWI - Half Write Indirect - 76 XX
+            Copy E portion of A to E portion of operand address of bank control (i).
+    
+    Arithmetic Instructions
+        MUT - Multiply A by 10 - 01 12
+            Multiply contents of A by 10.
+            (A) * 10 => A
+            (P) + 1 => P
+        
+        MUH - Multiply A by 100 - 01 13
+            Multiply contents of A by 100.
+            (A) * 100 => A
+            (P) + 1 => P
+        
+        ADN - Add No Address - 06 XX
+        ADD - Add Direct       30 XX
+        ADM - Add Memory       31 00 YYYY
+        ADI - Add Indirect     31 XX
+        ADC - Add Constant     32 00 XXXX
+        ADF - Add Forward      32 XX
+        ADS - Add Specific     33 00
+        ADB - Add Backward     33 XX
+            Add contents of operand to A.  Behavior is address mode dependent.
+            (A) + operand => A
+        
+        SBN - Subtract No Address - 07 XX
+        SBD - Subtract Direct       34 XX
+        SBM - Subtract Memory       35 00 YYYY
+        SBI - Subtract Indirect     35 XX
+        SBC - Subtract Constant     36 00 XXXX
+        SBF - Subtract Forward      36 XX
+        SBS - Subtract Specific     37 00
+        SBB - Subtract Backward     37 XX
+            Subtract contents of operand from A.  Behavior is address mode dependent.
+            (A) - operand => A
+        
+        RAD - Replace Add Direct       50 XX
+        RAM - Replace Add Memory       51 00 YYYY
+        RAI - Replace Add Indirect     51 XX
+        RAC - Replace Add Constant     52 00 XXXX
+        RAF - Replace Add Forward      52 XX
+        RAS - Replace Add Specific     53 00
+        RAB - Replace Add Backward     53 XX
+            Add contents of operand to A, then copy sum to operand address.
+            Behavior is address mode dependent.
+            (A) + operand => A
+            (A) => operand address
+        
+        AOD - Replace Add One Direct       54 XX
+        AOM - Replace Add One Memory       55 00 YYYY
+        AOI - Replace Add One Indirect     55 XX
+        AOC - Replace Add One Constant     56 00 XXXX
+        AOF - Replace Add One Forward      56 XX
+        AOS - Replace Add One Specific     57 00
+        AOB - Replace Add One Backward     57 XX
+            Add contents of operand plus one to A, then copy sum to operand address.
+            Behavior is address mode dependent.
+            operand => A
+            (A) + 1 => A
+            (A) => operand address
+        
+    Shift Instructions
+        LS1 - Left Shift One    - 01 02
+        LS2 - Left Shift Two    - 01 03
+        LS3 - Left Shift Three  - 01 10
+        LS6 - Left Shift Six    - 01 11
+        RS1 - Right Shift One   - 01 14
+        RS2 - Right Shift Two   - 01 15
+            Shift A right or left number of bit positions specified.
+            <-(A)-> => A
+            (P) + 1 => P
+        
+        SRD - Shift Replace Direct       44 XX
+        SRM - Shift Replace Memory       45 00 YYYY
+        SRI - Shift Replace Indirect     45 XX
+        SRC - Shift Replace Constant     46 00 XXXX
+        SRF - Shift Replace Forward      46 XX
+        SRS - Shift Replace Specific     47 00
+        SRB - Shift Replace Backward     47 XX
+            Operand is placed in A, then shifted left 1 bit position.
+            Contents of A are transferred back to operand address.
+            Behavior is address mode dependent.
+            operand => A
+            shift A left circular 1 bit position
+            (A) => operand address
+    
+    Logical Instructions
+        LPN - Logical Product No Address - 02 XX
+        LPD - Logical Product Direct       10 XX
+        LPM - Logical Product Memory       11 00 YYYY
+        LPI - Logical Product Indirect     11 XX
+        LPC - Logical Product Constant     12 00 XXXX
+        LPF - Logical Product Forward      12 XX
+        LPS - Logical Product Specific     13 00
+        LPB - Logical Product Backward     13 XX
+            Store in A the logical product of the operand and A.
+            (A) & operand => A
+        
+        SCN - Selective Complement No Address - 03 XX
+        SCD - Selective Complement Direct       14 XX
+        SCM - Selective Complement Memory       15 00 YYYY
+        SCI - Selective Complement Indirect     15 XX
+        SCC - Selective Complement Constant     16 00 XXXX
+        SCF - Selective Complement Forward      16 XX
+        SCS - Selective Complement Specific     17 00
+        SCB - Selective Complement Backward     17 XX
+            Store in A the xor of the operand and A.
+            (A) XOR operand => A
+        
+    Storage Bank Control Instructions
+        SRJ - Set Relative Bank Control and Jump                        - 00 1X
+        SIC - Set Indirect Bank Control                                 - 00 2X
+        IRJ - Set Indirect and Relative Bank Control and Jump           - 00 3X
+        SDC - Set Direct Bank Control                                   - 00 4X
+        DRJ - Set Direct and Relative Bank Control and Jump             - 00 5X
+        SID - Set Indirect and Direct Bank Control                      - 00 6X
+        ACJ - Set Direct, Indirect and Relative Bank Control and Jump   - 00 7X
+        SBU - Set Buffer Bank Control                                   - 01 4X
+            Sets specified control(s) to reference bank X.  
+            Any instruction setting the relative bank control will jump to that bank, 
+            and then the next instruction is taken from the address stored in A.
+            Otherwise, (P) + 1 => P
+        
+    Jump Instructions
+        ZJF - Zero Jump Forward     - 60 XX
+        NZF - Non-Zero Jump Forward - 61 XX
+        PJF - Positive Jump Forward - 62 XX
+        NJF - Negative Jump Forward - 63 XX
+        ZJB - Zero Jump Backward    - 64 XX
+        NZB - Non-Zero Jump Backward - 65 XX
+        PJB - Positive Jump Backward - 66 XX
+        NJB - Negative Jump Backward - 67 XX
+            if(condition is true):
+                Jump forward/backward XX locations in the relative bank
+            else:
+                (r)(P) + 1 => P
+        
+        JPI - Jump Indirect - 70 XX
+            Transfer program control to the location in the relative (r) bank specified by the
+            contents of (d)00XX.
+            ((d)00XX) => P
+        
+        JPR - Return Jump - 71 00 YYYY
+            (P) + 2 => (r)YYYY
+            YYYY + 1 => P
+        
+        JFI - Jump Forward Indirect - 71 XX
+            Transfer program control to address in (r)(P + 00XX)
+            (r)((P) + 00XX) => P
+        
+    Input/Output Instructions
+        CBC - Clear Buffer Controls - 01 04
+            Stop buffer operations and clear buffer controls.
+            Does NOT clear BER, BXR, or BFR.
+            No buffer complete (Interrupt 20) is generated.
+        
+        CIL - Clear Interrupt Lockout - 01 20
+            Clear interrupt lockout and allow any waiting interrupts to function.
+            Interrupt lockout is not cleared until the instruction following CIL
+            has been executed.
+        
+        IBI - Initiate Buffer Input - 72 00 YYYY
+            Initiate an input buffer operation.  Prior to this,
+            an external device must be selected with BER/BXR and (b) set correctly.
+            If buffer is busy, jump to YYYY.  When complete, interrupt signal 20 will appear.
+        
+        IBO - Initiate Buffer Output - 73 00 YYYY
+            Initiate an output buffer operation.  Prior to this,
+            an external device must be selected with BER/BXR and (b) set correctly.
+            If buffer is busy, jump to YYYY.  When complete, interrupt signal 20 will appear.
+        
+        INP - Normal Input  - 72 XX YYYY
+        OUT - Normal Output - 73 XX YYYY
+            Read/Write using previously selected device.
+            FWA is XX locations forward in the relative memory bank.
+            (r)P + 00XX = FWA.  Also specifies FWA in indirect bank.
+            LWA + 1 is location YYYY in the indirect memory bank (i)YYYY
+            Contents of A at the end of execution will indicate the LWA + 1
+            locations read to or from.
+        
+        OTN - Output No Address - 74 XX
+            Write, on the previously selected output device, one word with zero in the 6 high
+            order bits and XX in the 6 low order bits. The output operation takes place on
+            the normal input/output channel. At the completion of the output operation, con-
+            trol continues at location (r)(P) + 1. If an OTN instruction is given and no ex-
+            ternal device has been properly selected, the computer will be indefinitely de-
+            layed and the operation mode (OUT) displayed on the status mode indicator.
+        
+        INA - Input to A - 76 00
+        OTA - Output from A - 76 77
+            Read or write, on the previously selected external device, one word to or from A.
+            The operation takes place on the normal input/output channel. On devices which
+            transmit less than one full computer word at a time, such as the 350 paper tape
+            reader, the information is transmitted to and from the low order portion of A. At
+            the completion of the operation, control continues at location (r)(P) + 1. If an INA
+            or OTA instruction is being executed and no external device has been properly
+            selected, the computer will be indefinitely delayed and the operation mode (INP,
+            OUT) displayed on the status mode indicator.
+        
+        EXC - External Function Constant - 75 00 XXXX
+        EXF - External Function Forward  - 75 XX
+            Transmit the 12-bit operand to the external equipments. The operand for the
+            various address modes is selected and control continues as described in the
+            section on address modes. At the completion of an external function instruction,
+            A will contain the 12-bit external function code.
+    
+    Selective Stop and Jump Instructions
+        SLS - Selective Stop          - 77 0X
+        SLJ - Selective Jump          - 77 X0 YYYY
+        SJS - Selective Stop and Jump - 77 XX YYYY
+            The selective stop and jump instructions are controlled by six switches on the
+            computer console: Stop switches 1, 2, and 4, and Jump switches 1, 2, and 4.
+                1) SLS: If the appropriate Stop switch is set, stop; otherwise do not stop. If the
+                computer stops, computation may be resumed by placing the Run/Step switch
+                in neutral and then back to the RUN position. Whether the computer stops or
+                not, control will continue at location (r)(P) + 1.
+                2) SLJ: If the appropriate Jump switch is set, jump to location (r)YYYY;
+                otherwise control continues at location (r)(P) + 2.
+                3) SJS: If the appropriate Jump switch is set, set up to jump to location (r)YYYY;
+                otherwise set up to continue contro! at (r)(P) + 2. Then test the appropriate
+                Stop switch. If the appropriate Stop switch is set, stop before executing the
+                next instruction; control continues as selected by the Jump switches. If a stop
+                occurs, computation may be resumed by placing the Run/Step switch in neutral
+                and then back to the Run position.
