@@ -539,8 +539,8 @@ static bool isSyntaxGood_FFXX_YYYY(const StringArray& instruction) {
     return (instruction.size() == 3 || (instruction.size() > 3 && instruction.at(3) == "//")) && isTwoOctalDigits(instruction.at(1)) && isFourOctalDigits(instruction.at(2));
 }
 
-static bool isSyntaxGood_A_XXXX_YYYY(const StringArray& instruction) {
-    return (instruction.size() == 3 || (instruction.size() > 3 && instruction.at(3) == "//")) && isFourOctalDigits(instruction.at(1)) && isFourOctalDigits(instruction.at(2));
+static bool isSyntaxGood_A_XXXX(const StringArray& instruction) {
+    return isSyntaxGood_FFEE_YYYY(instruction);
 }
 
 static std::string instructionToMachineCode(const StringArray& instruction) {
@@ -959,8 +959,8 @@ static std::string assemble(std::ifstream& asmFile) {
             continue;
         }
         if(instruction[0] == SET_ADDRESS_SYMBOL) {
-            if(isSyntaxGood_A_XXXX_YYYY(instruction)) {
-                mc << SET_ADDRESS_SYMBOL + instruction[1] + "\n" + instruction[2] + "\n";
+            if(isSyntaxGood_A_XXXX(instruction)) {
+                mc << SET_ADDRESS_SYMBOL + instruction[1] + "\n";
             } else {
                 std::cerr << "Error: set address syntax incorrect at line " << i + 1 << std::endl;
                 asmFail = true;
