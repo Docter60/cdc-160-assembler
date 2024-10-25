@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cstdlib>
 #include <iostream>
 #include <filesystem>
@@ -9,9 +10,12 @@
 
 namespace fs = std::filesystem;
 using StringArray = std::vector<std::string>;
+using TokenArray = std::vector<StringArray>;
 
 static const std::string OUTPUT_OPTION_FLAG = "o";
 static const std::string SET_ADDRESS_SYMBOL = "@";
+static const char SPACE_DELIMITER = ' ';
+static const char TAB_DELIMITER = '\t';
 static const std::string DEFAULT_OUTPUT_FILENAME = "out.160";
 static const std::string DEFAULT_ENTRY_ADDRESS = "0100";
 static const std::string COMMENT_STRING = "//";
@@ -944,11 +948,44 @@ static std::string instructionToMachineCode(const StringArray& instruction) {
     return "";
 }
 
+static TokenArray tokenize(std::ifstream& asmFile) {
+    TokenArray ta;
+    StringArray sa;
+    std::string asmLine;
+    std::stringstream ss;
+    for(int i = 0; std::getline(asmFile, asmLine); ++i) {
+        // If empty line, skip
+        if(asmLine.size() == 0)
+            continue;
+        
+        // Replace all tabs with spaces
+        std::replace(asmLine.begin(), asmLine.end(), TAB_DELIMITER, SPACE_DELIMITER);
+
+        sa = splitStringByDelimiter(asmLine, SPACE_DELIMITER);
+
+        // Remove whitespace from string array
+        StringArray::iterator sai = sa.begin();
+        while(sai != sa.end()) {
+            if(*sai == "")
+                sai = sa.erase(sai);
+            else
+                ++sai;
+        }
+
+        // If empty string array, skip
+        if(sa.size() == 0)
+            continue;
+        
+        // Add string array to tokenized array
+        ta.push_back(sa);
+    }
+    return ta;
+}
+
 static std::string assemble(std::ifstream& asmFile) {
     std::stringstream mc;
     std::string asmLine, mcLine;
     StringArray instruction;
-    int opcodei;
     for(int i = 0; std::getline(asmFile, asmLine); ++i) {
         instruction = splitStringByDelimiter(asmLine, ' ');
         if(i == 0 && instruction[0] != SET_ADDRESS_SYMBOL) {
